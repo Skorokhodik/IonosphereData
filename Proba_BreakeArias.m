@@ -1,0 +1,64 @@
+clear
+
+%% Fulling breake areas
+  way_NACS='E:\Sciense\DISER\DATA files\Data file of AGW\DE2\neutral_gas_nacs\n_T_1s_ascii\'; % way on disk data are there
+    day='1982365';
+    dayOrbit=[day 'T072500'];
+        datafile=[dayOrbit '_0_DE2_NACS_1S_V01.ASC']; % datafile name
+            dataway=[way_NACS datafile];
+%% DOWNLOAD datafile    
+NACS=importdata(dataway);
+
+%% Separate parameters to different dataset
+UT_NACS=round((NACS.data(:,1))./1000);	% from msec to sec
+Oxigen=NACS.data(:,2);                  % cm-3
+
+%% looking for breaking point in NACS data
+    sampling_NACS=1;
+    
+[breake_points_NACS]=BreakePoints(UT_NACS, sampling_NACS);
+
+%% NACS_O
+O_1sec_with_BP=Oxigen(19:3940); % why is it impotant?.. if I need not full data set, 
+UT_1sec_with_BP=UT_NACS(19:3940);
+% but just part of it then it will be Oxigen(1:1000);
+    l_Ox=length(O_1sec_with_BP); % length of data set
+
+        % function create trend and detect GW
+        [Trend_Oxigen, FFT_GW_O, GravWave_Oxigen]=GravitationWave(O_1sec_with_BP);
+        
+figure % data from SC, trend and GW in Oxigen and Nitrogen
+       % Concentration and trend for O and N2        
+    subplot(311), plot(Oxigen(1:3940),'r','LineWidth',2); grid on
+        hold on
+            set(gca,'XLim',[0 l_Ox]);
+
+%% sampling 20 sec
+O_20sec=[Oxigen(19:20:1279); Oxigen(1280:20:3940)]; 
+UT_20sec=[UT_NACS(19:20:1279); UT_NACS(1280:20:3940)]; 
+    l_Ox20=length(O_20sec); % length of data set
+
+    [Trend_Oxigen_20sec, FFT_GW_O_20sec, GravWave_Oxigen_20sec]=GravitationWave(O_20sec);
+        
+        hold on
+    subplot(312), plot(O_20sec,'g','LineWidth',2); grid on
+
+%% Interpolation Oxigen_20sec to 1 sec sampling
+
+        L=UT_NACS(3940)-UT_NACS(19); % how many seconds lost
+        Length_O_20sec=length(O_20sec);
+
+[O_20sec_to_1sec]=Naiquist_theorem(O_20sec, L, Length_O_20sec);
+O_20sec_to_1sec=O_20sec_to_1sec(1:3922)';
+
+c=xcorr(O_20sec_to_1sec, O_1sec_with_BP);
+
+O=[Oxigen(1:1278);O_20sec_to_1sec(1261:1272);Oxigen(1281:3940)];
+
+       hold on
+subplot(313), plot(O_1sec_with_BP,'r','LineWidth',2); grid on
+       hold on
+subplot(313), plot(O_20sec_to_1sec,'g','LineWidth',2); grid on
+       hold on
+subplot(311), plot(O,'k','LineWidth',2); grid on
+    
