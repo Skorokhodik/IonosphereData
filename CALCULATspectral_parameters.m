@@ -9,21 +9,21 @@ H_N2=R*mean(T_Vz_interpolated)/(m_N2*g); %[m]
         gamma=5/3; % gamma
 wg=((1-1/gamma)*g/H_O)^(1/2); % 1/s
 	Tg=2*pi/(wg*60); % min
-Kg=1000/(2*H_O); % [1/m]
+Kg=1000/(2*H_O); % [1/km]
 	Lg=2*pi/Kg; % [km]
             Cs2=gamma*R*mean(T_Vz_interpolated)/m_O; % [m^2/s^2]
 Cs=sqrt(Cs2); % [m/s]
-
-%                         SpM_O=SpectaMin(:,1)';
-%                         SpM_N2=SpectaMin(:,2)';
-%                         SpM_dz=SpectaMin(:,3)';
-%                         SpM_Vz=SpectaMin(:,4)';
-%                         SpM_Vy=SpectaMin(:,5)';
-%                         SpM_dp=SpectaMin(:,6)';
-%                         SpM_T=SpectaMin(:,7)';
-
-%% O  N2  dz,[m]  Vz,[m/s]  Vy,[m/s]  dp/p
-% calc=[1 2 5 13];
+%     SpectaMin=textread(['D:\work\PhD_WORK\' dayOrbit '\' dayOrbit '_SpectraMinimum.txt']);
+%                         SpM_O=SpectaMin(1,:);
+%                         SpM_N2=SpectaMin(2,:);
+%                         SpM_dz=SpectaMin(3,:);
+%                         SpM_Vz=SpectaMin(4,:);
+%                         SpM_Vy=SpectaMin(5,:);
+%                         SpM_dp=SpectaMin(6,:);
+%                         SpM_T=SpectaMin(7,:);
+% 
+% %% O  N2  dz,[m]  Vz,[m/s]  Vy,[m/s]  dp/p
+% calc=[1 2 3 5];
 % for calcul=1:4
 %     a_O(calcul)=SpM_O(calc(calcul));   
 %                         a_O_km(calcul)=2^16*7.8/a_O(calcul);
@@ -32,11 +32,11 @@ Cs=sqrt(Cs2); % [m/s]
 %     a_dp(calcul)=SpM_dp(calc(calcul));    a_T(calcul)=SpM_T(calc(calcul)); 
 % end
 
-a_O=[223 489 767 1409];   
+a_O=[248 369 766 1570];
 for i=1:4,     a_O_km(i)=2^16*7.8/a_O(i); end
-a_N2=[204 491 770 1418];   a_dz=[202 490 775 1497];  
-a_Vz=[204 448 690 1412];   a_Vy=[226 490 721 1347];   
-a_dp=[280 462 761 1515];   a_T=[280 463 761 1518];
+a_N2=[279 387 765 1520];   a_dz=[275 378 760 1531];  
+a_Vz=[211 383 770 1533];   a_Vy=[271 362 721 1510];   
+a_dp=[290 358 739 1602];   a_T=[289 358 739 1603];
 
 figure % Waves of different arias and thier spectrum
 
@@ -268,7 +268,8 @@ line([qh(i) d2],[W0(i) W0(i)],'Marker','.','LineStyle','-'); hold on
     line([qh(i) qh(i)],[W0(i) dw1],'Marker','.','LineStyle','-'); hold on
     line([qh(i) qh(i)],[W0(i) dw2],'Marker','.','LineStyle','-'); hold on
         end
-            Vgrup(i)=(qh(i)*qz(i)/(1+q(i)^2)^(3/2))*Cs; % m/s
+            Vgrup_z(i)=(qh(i)*qz(i)/(1+q(i)^2)^(3/2))*Cs; % m/s
+            Vgrup_h(i)=(1+qz(i)^2)/((1+q(i)^2)^(3/2))*Cs; % m/s
 end
 
 set(gca,'XLim',[0 6],'YLim',[0 3]);
@@ -282,6 +283,22 @@ for i=1:3
     V_faz_goriz(i)=(w(i)*1000)/Kh(i); % m/sec
 end
 
+
+ V_faz_goriz_aria=(w_aria*1000)/Kh_aria; % m/s
+ 
+    concentrationGas=Trend_O(s:e)+Trend_N2(s:e); % 1/cm2
+    
+ U=3/2*rms(concentrationGas(aria1:aria2))*k_Bolc*rms(abs(Trend_T_Vz(aria1:aria2))); % internal energy [erg]
+ E=(maxA(1)^2)*U; % full energy
+ 
+ S=1/3*100*U*rms(abs(hilbert(iFFT_GW_Vz_1(aria1:aria2))))*rms(abs(hilbert(iFFT_GW_dp_1(aria1:aria2)))); % energy flow
+    
+ V_grup_from_energy=S/E/100; % check out of Vgrup by another method
+ 
+ Q=Kg*S*10^(-5); % 1/km*?
+
+
+
 KandQ=[Kx',dqx',Ky',qh',Kz',qz',q'];
-LandW=[Lx',w',W0',T_minut',dw0',round(V_faz_goriz)',Vgrup'];
+LandW=[Lx',w',W0',T_minut',dw0',round(V_faz_goriz)',Vgrup_z'];
 check=[relation_N2_O',check_K',check_V'];

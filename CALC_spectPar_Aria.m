@@ -1,4 +1,6 @@
         R=8.32*1000; % gramm*m^2/mol*K*s^2
+%             k_Bolc=1.38*10^(-23); % Dj/K or kg*m2/c2*K
+             k_Bolc=1.38*10^(-16); % erg/K or g*cm2/c2*K
         m_O=16; %gramm/mol
         m_N2=28;%gramm/mol
         g=9.8; % m/s2;
@@ -7,7 +9,7 @@ H_N2=R*mean(T_Vz_interpolated)/(m_N2*g); %[m]
         gamma=5/3; % gamma
 wg=((1-1/gamma)*g/H_O)^(1/2); % 1/s
 	Tg=2*pi/(wg*60); % min
-Kg=1000/(2*H_O); % [1/m]
+Kg=1000/(2*H_O); % [1/km]
 	Lg=2*pi/Kg; % [km]
             Cs2=gamma*R*mean(T_Vz_interpolated)/m_O; % [m^2/s^2]
 Cs=sqrt(Cs2); % [m/s]
@@ -16,17 +18,17 @@ Cs=sqrt(Cs2); % [m/s]
 %             WholeGW_2_zeros=[iFFT_GW_O_1; zeros(2^16-length(iFFT_GW_O_1), 1)];
 %             FFT_GW_1=fft(WholeGW_1_zeros,NFFT);
 % a - space interval from the file maximum.m
-aria1=a(1);
-aria2=a(2);
+aria1=a(3);
+aria2=a(4);
 
 % O_scale aria and fft
-Oxigen_aria=iFFT_GW_O_2(aria1:aria2);
+Oxigen_aria=iFFT_GW_O(aria1:aria2);
 Ox_aria_zero=[Oxigen_aria ; zeros(2^16-length(Oxigen_aria), 1)];
 
 FFT_Ox_aria=fft(Ox_aria_zero, NFFT);
             
         subplot(211), plot(aria1:aria2,Oxigen_aria,'r','LineWidth',1); grid on
-            set(gca,'XLim',[0 L_Ox]);
+            set(gca,'XLim',[0 length(iFFT_GW_O)]);
         subplot(212), plot(0:NFFT-1, abs(FFT_Ox_aria),'r','LineWidth',2); grid on
         set(gca,'XLim',[0 3000]);
         % line of rms in spectrum
@@ -38,10 +40,13 @@ FFT_Ox_aria=fft(Ox_aria_zero, NFFT);
             legend('fft dO','line of rms(dO)/2');
             title(['Datafile ' dayOrbit  ', Orbit ' num2str(Orbit(1)) ', UT start ' num2str(UT_NACS(1)/3600) 'hour'],...
                     'fontsize',10);
+                filename=[dayOrbit,'_point_2-3_wave&spectrum'];
+                saveas(gcf, fullfile(fpath,filename),'jpeg');
+                saveas(gcf, fullfile(fpath,filename),'pdf');
 
 
-           aria1_spectrum=966;
-           aria2_spectrum=1204;
+           aria1_spectrum=190;
+           aria2_spectrum=784;
                     
                 middle_O_aria=(aria1_spectrum+aria2_spectrum)/2;
                 Lx_aria=2^16*7.8/middle_O_aria; % km
@@ -49,7 +54,7 @@ FFT_Ox_aria=fft(Ox_aria_zero, NFFT);
                     l1_aria=2^16*7.8/aria1_spectrum;
                         
 % dz aria and fft
-dz_aria=iFFT_GW_dz_2(aria1:aria2);
+dz_aria=iFFT_GW_dz(aria1:aria2);
 dz_aria_zero=[dz_aria ; zeros(2^16-length(dz_aria), 1)];
 
 FFT_dz_aria=fft(dz_aria_zero, NFFT);
@@ -78,7 +83,7 @@ FFT_Vz_aria=fft(Vz_aria_zero, NFFT);
 
 
 %% Ky=(y*w*Vy)/(Cs2*dp)
-    Ky_aria=(gamma/Cs2)*w_aria*1000*(rms(abs(iFFT_GW_Vy_2(aria1:aria2)))/(rms(abs(iFFT_GW_O_2(aria1:aria2)))...
+    Ky_aria=(gamma/Cs2)*w_aria*1000*(rms(abs(iFFT_GW_Vy_2(aria1:aria2)))/(rms(abs(iFFT_GW_O(aria1:aria2)))...
         +rms(abs(iFFT_GW_T_2(aria1:end))))); % 1/km
         qy_aria=Ky_aria/Kg;
 
@@ -163,8 +168,24 @@ line([qh_aria d2],[W0_aria W0_aria],'Marker','.','LineStyle','-'); hold on
     line([qh_aria qh_aria],[W0_aria dw2],'Marker','.','LineStyle','-'); hold on
         end
         
-Vgrup_aria=(qh_aria*qz_aria/(1+q_aria^2)^(3/2))*Cs; % m/s
+Vgrup_aria_z=(qh_aria*qz_aria/(1+q_aria^2)^(3/2))*Cs; % m/s
+Vgrup_aria_h=(1+qz_aria^2)/((1+q_aria^2)^(3/2))*Cs; % m/s
 
 set(gca,'XLim',[0 6],'YLim',[0 3]);
+                filename=[dayOrbit,'_point_2-3_disperce_curve'];
+                saveas(gcf, fullfile(fpath,filename),'jpeg');
+                saveas(gcf, fullfile(fpath,filename),'pdf');
 
- V_faz_goriz_aria=(w_aria*1000)/Kh_aria;
+
+ V_faz_goriz_aria=(w_aria*1000)/Kh_aria; % m/s
+ 
+    concentrationGas=Trend_O(s:e)+Trend_N2(s:e); % 1/cm2
+    
+ U=3/2*rms(concentrationGas(aria1:aria2))*k_Bolc*rms(abs(Trend_T_Vz(aria1:aria2))); % internal energy [erg]
+ E=(maxA(1)^2)*U; % full energy
+ 
+ S=1/3*100*U*rms(abs(hilbert(iFFT_GW_Vz_1(aria1:aria2))))*rms(abs(hilbert(iFFT_GW_dp_1(aria1:aria2)))); % energy flow
+    
+ V_grup_from_energy=S/E/100; % check out of Vgrup by another method
+ 
+ Q=Kg*S*10^(-5); % 1/km*?

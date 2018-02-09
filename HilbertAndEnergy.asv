@@ -1,0 +1,20 @@
+%% 1
+figure
+        
+subplot(211), plot(1:L_Ox,iFFT_GW_O_1(1:L_Ox),'r','LineWidth',1); grid on
+        hold on
+              plot(1:L_Ox,abs(hilbert(iFFT_GW_O_1(1:L_Ox))),'g','LineWidth',2);
+                set(gca,'XLim',[UT_NACS_1sec(1)/3600 UT_NACS_1sec(end)/3600]);
+subplot(212), plot(1:L_Ox,abs(hilbert(iFFT_GW_O_1(1:L_Ox)))^2,'k','LineWidth',2); grid on
+
+figure
+
+
+%% 2
+figure
+        
+subplot(211), plot(1:L_Ox,iFFT_GW_O_2(1:L_Ox),'r','LineWidth',1); grid on
+        hold on
+              plot(1:L_Ox,abs(hilbert(iFFT_GW_O_2(1:L_Ox))),'g','LineWidth',2);
+              
+subplot(212), plot(1:L_Ox,abs(hilbert(iFFT_GW_O_2(1:L_Ox)))^2,'k','LineWidth',2); grid on

@@ -4,7 +4,7 @@ k=0;
         
 for i=2:length(Lat_Vy)-1
     if (Lat_Vy(i)-Lat_Vy(i-1))*(Lat_Vy(i+1)-Lat_Vy(i))<0
-        k=[i-1;k];
+        k=[i;k];
     end
 end
     if length(k)>2

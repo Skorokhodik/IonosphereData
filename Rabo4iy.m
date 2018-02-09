@@ -1,32 +1,29 @@
 %% Trend checking as middle line and polinom
 clear
     way_NACS='E:\Sciense\DISER\DATA files\Data file of AGW\DE2\neutral_gas_nacs\n_T_1s_ascii\'; % way on disk data are there
-    day='1982327';
-    dayOrbit=[day 'T164000'];
+    day='1983031';
+    dayOrbit=[day 'T141140'];
     datafile=[dayOrbit '_0_DE2_NACS_1S_V01.ASC']; % datafile name
     dataway=[way_NACS datafile];
 %% DOWNLOAD datafile    
 NACS=importdata(dataway);
-        mkdir('E:\Sciense\DISER\work in Matlab\programs\METHODICS_2016\',dayOrbit);
 
 %% Separate parameters to different dataset
 UT_NACS1=round((NACS.data(:,1))./1000);	% from msec to sec
-        UT_NACS=UT_NACS1(1:end);
-Alt=NACS.data(:,13);                % km
-Latitude=NACS.data(:,14);                % deg 
-    Lat=Latitude(1:end);
-Long=NACS.data(:,15);               % deg
-LST=NACS.data(:,16);                % hr
+  UT_NACS=UT_NACS1(448:end);
+    Alt=NACS.data(:,13);                % km
+    Lat=NACS.data(:,14);                % deg 
+    Long=NACS.data(:,15);               % deg
+    LST=NACS.data(:,16);                % hr
 Oxigen1=NACS.data(:,2);                  % cm-3
-        Oxigen=Oxigen1(1:end);
- Oxigen_error=NACS.data(:,3);
+  Oxigen=Oxigen1(448:end);
+    Oxigen_error=NACS.data(:,3);
 Nitrogen1=NACS.data(:,4);                % cm-3
-        Nitrogen=Nitrogen1(1:end);
+  Nitrogen=Nitrogen1(448:end);
 Helium=NACS.data(:,6);                  % cm-3
 Argentum=NACS.data(:,8);                % cm-3
-Orbit=NACS.data(:,12);
+    Orbit=NACS.data(:,12);
 
-    NFFT=2^16;
 %% looking for breaking point (BP) in NACS data
     sampling_NACS=1;
     
@@ -50,39 +47,36 @@ L_Ox=length(O); % length of data set after BP ... so length of data have changed
 %% NACS_N2
         % function create trend and detect GW
         [Trend_N2, Wave_N2, FFT_GW_N2, GravWave_Nitrogen]=GravitationWave(N2);
+        
 
 figure % data from SC, trend and GW in Oxigen and Nitrogen
     
         % Concentration and trend for O and N2        
-    subplot(221), plot(O,'r','LineWidth',2); grid on
+    subplot(221), plot(UT_NACS_1sec./3600,O,'r','LineWidth',2); grid on
         hold on
-    subplot(221), plot(Trend_O(1:L_Ox),'m','LineWidth',2);
+    subplot(221), plot(UT_NACS_1sec./3600,Trend_O(1:L_Ox),'m','LineWidth',2);
         hold on
-    subplot(221), plot(N2,'g','LineWidth',2); grid on
+    subplot(221), plot(UT_NACS_1sec./3600,N2,'g','LineWidth',2); grid on
         hold on
-    subplot(221), plot(Trend_N2(1:L_Ox),'c','LineWidth',2);        
-            set(gca,'XLim',[0 L_Ox]);
+    subplot(221), plot(UT_NACS_1sec./3600,Trend_N2(1:L_Ox),'c','LineWidth',2);        
+            set(gca,'XLim',[UT_NACS_1sec(1)/3600 UT_NACS_1sec(end)/3600]);
             xlabel('Oxigen variations - red line, Oxigen trend - magenta line, Nitrogen - green line, Nitrogen trend - cyant line','fontsize',12);
             title(['Datafile   ' dayOrbit  '   Orbit Nomber  ' num2str(Orbit(1)) '   UT start   ' num2str(UT_NACS(1)/3600) 'hour'],'fontsize',14);
 
         % O and N2 spectrum
-    subplot(222), plot(0:NFFT-1, abs(FFT_GW_O),'r','LineWidth',2); grid on
+    subplot(222), plot(0:2^16-1, abs(FFT_GW_O),'r','LineWidth',2); grid on
         hold on
-    subplot(222), plot(0:NFFT-1, abs(FFT_GW_N2),'g','LineWidth',2);
+    subplot(222), plot(0:2^16-1, abs(FFT_GW_N2),'g','LineWidth',2);
             set(gca,'XLim',[0 2600]);
             xlabel('Oxigen (red line), N2 (green line)','fontsize',12);  
             
         % iFFT wave in GW area in O and N2 data
-    subplot(212), plot(1:L_Ox, GravWave_Oxigen(1:L_Ox),'r','LineWidth',2); grid on; 
+    subplot(212), plot(UT_NACS_1sec./3600, GravWave_Oxigen(1:L_Ox),'r','LineWidth',2); grid on; 
         hold on
-    subplot(212), plot(1:L_Ox, GravWave_Nitrogen(1:L_Ox),'g','LineWidth',2);    
-            set(gca,'XLim',[0 L_Ox]);
+    subplot(212), plot(UT_NACS_1sec./3600, GravWave_Nitrogen(1:L_Ox),'g','LineWidth',2);    
+            set(gca,'XLim',[UT_NACS_1sec(1)/3600 UT_NACS_1sec(end)/3600]);
             xlabel('Oxigen (red line) and Nitrogen (green line) gravitation wave area (from spectrum)','fontsize',12);
-            
-   fpath=['E:\Sciense\DISER\work in Matlab\programs\METHODICS_2016\',dayOrbit];
-   filename=[dayOrbit,'_O-N_2'];
-saveas(gcf, fullfile(fpath,filename),'jpeg');
-    saveas(gcf, fullfile(fpath,filename),'pdf');
+   
                 
 %% WATS
         way_WATS='E:\Sciense\DISER\DATA files\Data file of AGW\DE2\neutral_gas_wats\';
@@ -154,12 +148,12 @@ end
 [Vz_interpolated]=Naiquist_theorem(Vz, L_Vz, Length_Vz);
 [T_Vz_interpolated]=Naiquist_theorem(T_Vz, L_Vz, Length_Vz);
 
-     UT_WATS_Vz_1sec=(UT_WATS_Vz(Vz_start):1:UT_WATS_Vz(Vz_end-1))'; % each one second from the startVz to endVz
+     UT_WATS_Vz_1sec=(UT_WATS_Vz(Vz_start):1:UT_WATS_Vz(Vz_end)-1)'; % each one second from the startVz to endVz
      
 [Trend_Vz, wave_Vz, FFT_Vz, FFT_GW_Vz, GravWave_Vz]=GravitationWave_Wind(Vz_interpolated);
     L_Vz=length(Vz_interpolated);
-[Trend_T_Vz, wave_T_Vz, FFT_dT_Vz, FFT_GW_T_Vz, dT]=GravitationWave_Wind(T_Vz_interpolated);
-        dTnorm=[dT(1:L_Vz)./Trend_T_Vz(1:L_Vz); zeros(2^16-L_Vz,1)];
+    
+[Trend_T_Vz, wave_T_Vz, FFT_dT_Vz, FFT_GW_T_Vz, dT_T]=GravitationWave_Wind(T_Vz_interpolated);
 
 %% Horizontal wind (Vy)
 [WATS_Vy]=Horizontal_wind_WATS(K_wats);
@@ -188,83 +182,76 @@ Vy=HorizontalWind(Vy_start:2:Vy_end);
 Lat_Vy=Latitude_WATS_Vy(Vy_start:2:Vy_end);
 
 [Vy_corr]=Vy_correction(Vy, Lat_Vy);
+UT_WATS_Vy_8sec=UT_WATS_Vy(Vy_start:2:Vy_end);
    
         T_Vy=Temperature_Vy(Vy_start:Vy_end);
       L_Vy=UT_WATS_Vy(Vy_end)-UT_WATS_Vy(Vy_start); % how many seconds lost
       Length_Vy=length(Vy_corr);
         
 [Vy_interpolated]=Naiquist_theorem(Vy_corr, L_Vy, Length_Vy);
-     UT_WATS_Vy_1sec=(UT_WATS_Vy(Vy_start):1:UT_WATS_Vy(Vy_end))';
+     UT_WATS_Vy_1sec=(UT_WATS_Vy(Vy_start):1:UT_WATS_Vy(Vy_end)-1)';
      
 [Trend_Vy, wave_Vy, FFT_Vy, FFT_GW_Vy, GravWave_Vy]=GravitationWave_Wind(Vy_interpolated);
      
 figure % Vy and Vy_correct coz Vy axe change direction
-	subplot(211), plot(1:length(Vy),Vy,'r','LineWidth',2); grid on
-        set(gca,'XLim',[0 length(Vy)]);
-    subplot(212), plot(1:length(Vy),Vy_corr,'r','LineWidth',2); grid on
-        set(gca,'XLim',[0 length(Vy)]);
+	subplot(211), plot(UT_WATS_Vy_8sec./3600,Vy,'r','LineWidth',2); grid on
+        set(gca,'XLim',[UT_NACS_1sec(1)/3600 UT_NACS_1sec(end)/3600]);
+    subplot(212), plot(UT_WATS_Vy_8sec./3600,Vy_corr,'r','LineWidth',2); grid on
+        set(gca,'XLim',[UT_NACS_1sec(1)/3600 UT_NACS_1sec(end)/3600]);
         xlabel('Vy and Vy_correction coz of Y axe change direction','fontsize',12);
         title(['Datafile   ' dayOrbit  '   Orbit Nomber  ' num2str(Orbit(1)) '   UT start   ' num2str(UT_NACS(1)/3600) 'hour'],'fontsize',14);
 
-   filename=[dayOrbit,'_Vy'];
-saveas(gcf, fullfile(fpath,filename),'jpeg');
-    saveas(gcf, fullfile(fpath,filename),'pdf');
-        
-        
 figure % Wind and Temperature
     % Vz
-        subplot(321), plot(1:length(Vz_interpolated),Vz_interpolated,'b','LineWidth',1); grid on
+        subplot(321), plot(UT_WATS_Vz_1sec./3600,Vz_interpolated,'b','LineWidth',1); grid on
         	hold on
-        subplot(321), plot(1:L_Vz,Trend_Vz(1:L_Vz),'c','LineWidth',1);
+        subplot(321), plot(UT_WATS_Vz_1sec./3600,Trend_Vz(1:L_Vz),'c','LineWidth',1);
         	hold on
-        subplot(321), plot(1:L_Vz,wave_Vz(1:L_Vz),'b','LineWidth',2);
-                set(gca,'XLim',[0 length(Vz_interpolated)]);
+        subplot(321), plot(UT_WATS_Vz_1sec./3600,wave_Vz(1:L_Vz),'b','LineWidth',2);
+                set(gca,'XLim',[UT_NACS_1sec(1)/3600 UT_NACS_1sec(end)/3600]);
                 xlabel('Vz (blue line)','fontsize',12);
                 title(['Datafile' '   ' dayOrbit  '   ' 'Noises in data from NACS'],'fontsize',14);
         % FFT Vz-Trend
         subplot(322), plot(1:2^16,abs(FFT_Vz),'b','LineWidth',2); grid on
                 set(gca,'XLim',[0 2600]);
     % Vy            
-        subplot(323), plot(1:length(Vy_interpolated),Vy_interpolated,'r','LineWidth',1); grid on
+        subplot(323), plot(UT_WATS_Vy_1sec./3600,Vy_interpolated,'r','LineWidth',1); grid on
          	hold on
-        subplot(323), plot(1:L_Vy,Trend_Vy(1:L_Vy),'m','LineWidth',1);
+        subplot(323), plot(UT_WATS_Vy_1sec./3600,Trend_Vy(1:L_Vy),'m','LineWidth',1);
         	hold on
-        subplot(323), plot(1:L_Vy,wave_Vy(1:L_Vy),'r','LineWidth',2); 
-                set(gca,'XLim',[0 length(Vy_interpolated)]);
+        subplot(323), plot(UT_WATS_Vy_1sec./3600,wave_Vy(1:L_Vy),'r','LineWidth',2); 
+                set(gca,'XLim',[UT_NACS_1sec(1)/3600 UT_NACS_1sec(end)/3600]);
                 xlabel('Vy (red line)','fontsize',12);
 
         % FFT Vy-Trend
         subplot(324), plot(1:2^16,abs(FFT_Vy),'r','LineWidth',2); grid on
                 set(gca,'XLim',[0 2600]);
     % T
-        subplot(325), plot(1:length(T_Vz_interpolated),T_Vz_interpolated,'m','LineWidth',2); grid on
+        subplot(325), plot(UT_WATS_Vz_1sec./3600,T_Vz_interpolated,'m','LineWidth',2); grid on
         	hold on
-        subplot(325), plot(1:length(T_Vz_interpolated),Trend_T_Vz(1:length(T_Vz_interpolated)),'m','LineWidth',2);
+        subplot(325), plot(UT_WATS_Vz_1sec./3600,Trend_T_Vz(1:length(T_Vz_interpolated)),'m','LineWidth',2);
         	hold on
-        subplot(325), plot(1:length(T_Vz_interpolated),wave_T_Vz(1:length(T_Vz_interpolated)),'r','LineWidth',2); 
-                set(gca,'XLim',[0 length(T_Vz_interpolated)]);
+        subplot(325), plot(UT_WATS_Vz_1sec./3600,wave_T_Vz(1:length(T_Vz_interpolated)),'r','LineWidth',2); 
+                set(gca,'XLim',[UT_NACS_1sec(1)/3600 UT_NACS_1sec(end)/3600]);
                 xlabel('Temperature','fontsize',12);
         % FFT T
         subplot(326), plot(1:2^16,abs(FFT_dT_Vz),'m','LineWidth',2); grid on
                 set(gca,'XLim',[0 2600]);
                 xlabel('SPECTRUM of parameters','fontsize',12);
                 title(['Datafile   ' dayOrbit  '   Orbit Nomber  ' num2str(Orbit(1)) '   UT start   ' num2str(UT_NACS(1)/3600) 'hour'],'fontsize',14);
- 
-     filename=[dayOrbit,'_Vy_Vz_T'];
-saveas(gcf, fullfile(fpath,filename),'jpeg');
-    saveas(gcf, fullfile(fpath,filename),'pdf');
               
 
 %% dz
 [dz, FFT_dz]=Vertical_displacement_dz(Temperature_Vz(Vz_start:Vz_end), GravWave_Oxigen, GravWave_Nitrogen, L_Ox);
 
 %[Trend_dz, Wave_dz, FFT_wave_dz, FFT_GW_dz, GravWave_dz]=GravitationWave_Wind(dz');
-   
+NFFT=2^16;
+    
 figure %4  dp/p and dz
     % dz_normalised
-	subplot(221), plot(1:length(dz), dz,'k','LineWidth',2); grid on
+	subplot(221), plot(UT_NACS_1sec./3600, dz,'k','LineWidth',2); grid on
         hold on
-            set(gca,'XLim',[0 length(dz)]);
+            set(gca,'XLim',[UT_NACS_1sec(1)/3600 UT_NACS_1sec(end)/3600]);
             xlabel('dz','fontsize',12); 
 	subplot(222), plot(1:NFFT, abs(FFT_dz),'k','LineWidth',2); grid on
             set(gca,'XLim',[0 2600]);
@@ -282,27 +269,23 @@ figure %4  dp/p and dz
         end
     end
     
-[dp_p, FFT_GW_dp]=PressureVariation(Wave_O(s:e), Wave_N2(s:e), Trend_O(s:e), Trend_N2(s:e), dT(1:length(UT_WATS_Vz_1sec)));
+[dp_p, FFT_GW_dp]=PressureVariation(Wave_O(s:e), Wave_N2(s:e), Trend_O(s:e), Trend_N2(s:e), dT_T(1:length(UT_WATS_Vz_1sec)));
     % dp_p    
-	subplot(223), plot(1:length(dp_p), dp_p,'m','LineWidth',2); grid on
-            set(gca,'XLim',[0 length(dp_p)]);
+	subplot(223), plot(UT_NACS_1sec(s:e)./3600, dp_p,'m','LineWidth',2); grid on
             xlabel('dp','fontsize',12); 
+            set(gca,'XLim',[UT_NACS_1sec(1)/3600 UT_NACS_1sec(end)/3600]);
     subplot(224), plot(1:NFFT,abs(FFT_GW_dp),'m','LineWidth',2); grid on
             set(gca,'XLim',[0 2600]);
             xlabel('Spectrum dp','fontsize',12); 
             title(['Datafile   ' dayOrbit  '   Orbit Nomber  ' num2str(Orbit(1)) '   UT start   ' num2str(UT_NACS(1)/3600) 'hour'],'fontsize',14);
 
-   filename=[dayOrbit,'_dz_dp'];
-saveas(gcf, fullfile(fpath,filename),'jpeg');
-    saveas(gcf, fullfile(fpath,filename),'pdf');
-
-    
+            
 figure % Spectrum of all parameters
     plot(0:2^16-1, abs(FFT_GW_O).*1e-10,'r','LineWidth',2); grid on
         hold on
     plot(0:2^16-1, abs(FFT_GW_N2).*1e-10,'g','LineWidth',2);
         hold on
-    plot(1:2^16,abs(FFT_Vz).*1e-4,'b','LineWidth',2); 
+    plot(1:2^16,abs(FFT_Vz).*1e-3,'b','LineWidth',2); 
         hold on
     plot(1:2^16,abs(FFT_Vy).*1e-4,'m','LineWidth',2);
         hold on
@@ -311,13 +294,10 @@ figure % Spectrum of all parameters
     plot(1:2^16,abs(FFT_dz).*1e-6,'k','LineWidth',2);
         hold on
     plot(1:2^16,abs(FFT_GW_dp).*1e-4,'c','LineWidth',2);
-        set(gca,'XLim',[0 3020],'YLim',[0 4]);
+        set(gca,'XLim',[0 2600],'YLim',[0 4]);
         xlabel('O (red), N2 (green), Vz (blue), Vy (magenta), T (red thik), dz (black), dp (cyant)','fontsize',12);  
         title(['Datafile   ' dayOrbit  '   Orbit Nomber  ' num2str(Orbit(1)) '   UT start   ' num2str(UT_NACS(1)/3600) 'hour'],'fontsize',14);
 
-   filename=[dayOrbit,'_all_spectrum'];
-saveas(gcf, fullfile(fpath,filename),'jpeg');
-    saveas(gcf, fullfile(fpath,filename),'pdf');
         
 %% NOISE calculate in fraquencies aria
 
@@ -334,8 +314,6 @@ end
         end
         
         ifft_noise=ifft(FFT_noise);
-                ifft_Oxigen=ifft(FFT_GW_O);
-                for_persent_calcul=max(real(ifft_Oxigen));
 
         
 figure % Noise in spectr - all scales less 100 km
@@ -346,16 +324,13 @@ figure % Noise in spectr - all scales less 100 km
                 xlabel('Oxigen (red line), Noise (magenta line)','fontsize',12);
                 title(['Datafile' '   ' dayOrbit  '   ' 'Noises in data from NACS'],'fontsize',14);
         
-        subplot(312), plot(1:L_Ox,real(ifft_noise(1:L_Ox)),'m','LineWidth',2); grid on
-                set(gca,'XLim',[0 L_Ox]);
+        subplot(312), plot(UT_NACS_1sec./3600,real(ifft_noise(1:L_Ox)),'m','LineWidth',2); grid on
+                set(gca,'XLim',[UT_NACS_1sec(1)/3600 UT_NACS_1sec(end)/3600]);
                 xlabel('Noise from Oxigen data','fontsize',12);
                 title(['Datafile   ' dayOrbit  '   Orbit Nomber  ' num2str(Orbit(1)) '   UT start   ' num2str(UT_NACS(1)/3600) 'hour'],'fontsize',14);
                 
 % Histogramm of NOISE
                 x=linspace(min(real(ifft_noise(1:L_Ox))), max(real(ifft_noise(1:L_Ox))),100);
+                
         subplot(313), hist(real(ifft_noise(1:L_Ox)), x); grid on
                  xlabel('Noise from Oxigen data','fontsize',12);
-                 
-   filename=[dayOrbit,'_Noises'];
-saveas(gcf, fullfile(fpath,filename),'jpeg');
-    saveas(gcf, fullfile(fpath,filename),'pdf');
